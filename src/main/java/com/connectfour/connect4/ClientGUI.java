@@ -42,19 +42,15 @@ public class ClientGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Layout principale
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: #2C3E50;");
 
-        // Pannello superiore con info
         VBox topPanel = createTopPanel();
         root.setTop(topPanel);
 
-        // Griglia di gioco
         gamePane = createGameBoard();
         root.setCenter(gamePane);
 
-        // Pannello inferiore con bottoni colonna
         HBox bottomPanel = createColumnButtons();
         root.setBottom(bottomPanel);
 
@@ -64,7 +60,6 @@ public class ClientGUI extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        // Connessione al server in un thread separato
         new Thread(() -> connectToServer(primaryStage)).start();
     }
 
@@ -89,17 +84,14 @@ public class ClientGUI extends Application {
         pane.setPrefSize(COLS * CELL_SIZE, ROWS * CELL_SIZE);
         pane.setStyle("-fx-background-color: #3498DB;");
 
-        // Crea la griglia blu e i cerchi per le pedine
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                // Cerchio bianco (vuoto)
                 Circle hole = new Circle(DISC_RADIUS);
                 hole.setCenterX(col * CELL_SIZE + CELL_SIZE / 2);
                 hole.setCenterY(row * CELL_SIZE + CELL_SIZE / 2);
                 hole.setFill(Color.WHITE);
                 pane.getChildren().add(hole);
 
-                // Cerchio per la pedina (inizialmente trasparente)
                 Circle disc = new Circle(DISC_RADIUS);
                 disc.setCenterX(col * CELL_SIZE + CELL_SIZE / 2);
                 disc.setCenterY(row * CELL_SIZE + CELL_SIZE / 2);
@@ -127,15 +119,12 @@ public class ClientGUI extends Application {
 
             btn.setOnAction(e -> {
                 if (gameOver) {
-                    // Non fare niente se il gioco è finito
                     return;
                 }
 
                 if (myTurn) {
-                    // È il tuo turno - invia la mossa
                     sendMove(column);
                 }
-                // Se NON è il tuo turno, semplicemente ignora il click (no messaggi)
             });
 
             buttonPanel.getChildren().add(btn);
@@ -152,7 +141,6 @@ public class ClientGUI extends Application {
 
             Platform.runLater(() -> stage.setTitle("Forza 4 - Connesso"));
 
-            // Thread per ascoltare i messaggi dal server
             String message;
             while ((message = in.readLine()) != null) {
                 processServerMessage(message, stage);
@@ -195,7 +183,6 @@ public class ClientGUI extends Application {
                 updateStatus("Clicca su una colonna per giocare");
 
             } else if (message.equals("WAIT_TURN")) {
-                // Messaggio iniziale per chi deve aspettare
                 myTurn = false;
                 updateTurn("⏳ Turno dell'avversario");
                 updateStatus("Aspetta il tuo turno...");
@@ -205,13 +192,11 @@ public class ClientGUI extends Application {
                 updateStatus(message.substring(5));
 
             } else if (message.equals("VALID_MOVE")) {
-                // Dopo una mossa valida, NON è più il tuo turno
                 myTurn = false;
                 updateTurn("⏳ Turno dell'avversario");
                 updateStatus("Mossa accettata! Aspetta l'avversario...");
 
             } else if (message.startsWith("INVALID_MOVE:")) {
-                // Resta il tuo turno se la mossa è invalida
                 updateStatus("❌ " + message.substring(13));
 
             } else if (message.startsWith("OPPONENT_MOVE:")) {
@@ -257,7 +242,6 @@ public class ClientGUI extends Application {
 
         System.out.println("DEBUG: Processando tabellone con " + lines.length + " righe");
 
-        // IMPORTANTE: Confronta con lo stato precedente
         boolean[][] newState = new boolean[ROWS][COLS];
 
         for (int lineIndex = 0; lineIndex < ROWS && lineIndex < lines.length; lineIndex++) {
@@ -278,7 +262,6 @@ public class ClientGUI extends Application {
                             animateDisc(disc, Color.RED, row, colIndex);
                             isAnimated[row][colIndex] = true;
                         } else {
-                            // Era già presente - assicurati sia rossa
                             disc.setFill(Color.RED);
                             disc.setStroke(Color.BLACK);
                             disc.setStrokeWidth(2);
@@ -307,21 +290,18 @@ public class ClientGUI extends Application {
     }
 
     private void animateDisc(Circle disc, Color color, int targetRow, int targetCol) {
-        // Animazione: la pedina cade dall'alto
         Circle fallingDisc = new Circle(DISC_RADIUS);
         fallingDisc.setCenterX(disc.getCenterX());
-        fallingDisc.setCenterY(-DISC_RADIUS * 2); // Parte da SOPRA
+        fallingDisc.setCenterY(-DISC_RADIUS * 2);
         fallingDisc.setFill(color);
         fallingDisc.setStroke(Color.BLACK);
         fallingDisc.setStrokeWidth(2);
 
         gamePane.getChildren().add(fallingDisc);
 
-        // Calcola distanza
         double targetY = disc.getCenterY();
-        double distance = targetY + DISC_RADIUS * 2; // Distanza totale da percorrere
+        double distance = targetY + DISC_RADIUS * 2;
 
-        // Animazione
         TranslateTransition transition = new TranslateTransition();
         transition.setNode(fallingDisc);
         transition.setDuration(Duration.millis(500));
