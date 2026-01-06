@@ -36,13 +36,11 @@ public class Game {
             return false;
         }
 
-        // IMPORTANTE: Parte dal BASSO (riga 5) e va verso l'ALTO (riga 0)
         for (int row = ROWS - 1; row >= 0; row--) {
             if (board[row][col] == ' ') {
                 board[row][col] = player;
                 System.out.println("DEBUG: ✓ Pedina inserita in riga=" + row + ", col=" + col);
 
-                // Controlla vittoria o pareggio
                 if (checkWin(player)) {
                     gameOver = true;
                     winner = player;
@@ -52,7 +50,6 @@ public class Game {
                     winner = 'D';
                     System.out.println("DEBUG: Pareggio!");
                 } else {
-                    // Cambia turno
                     currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
                     System.out.println("DEBUG: Turno cambiato -> " + currentPlayer);
                 }
@@ -66,7 +63,6 @@ public class Game {
     }
 
     public synchronized boolean checkWin(char player) {
-        // Controllo orizzontale
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS - 3; c++) {
                 if (board[r][c] == player &&
@@ -78,7 +74,6 @@ public class Game {
             }
         }
 
-        // Controllo verticale
         for (int r = 0; r < ROWS - 3; r++) {
             for (int c = 0; c < COLS; c++) {
                 if (board[r][c] == player &&
@@ -90,7 +85,6 @@ public class Game {
             }
         }
 
-        // Controllo diagonale (\)
         for (int r = 0; r < ROWS - 3; r++) {
             for (int c = 0; c < COLS - 3; c++) {
                 if (board[r][c] == player &&
@@ -102,7 +96,6 @@ public class Game {
             }
         }
 
-        // Controllo diagonale (/)
         for (int r = 3; r < ROWS; r++) {
             for (int c = 0; c < COLS - 3; c++) {
                 if (board[r][c] == player &&
