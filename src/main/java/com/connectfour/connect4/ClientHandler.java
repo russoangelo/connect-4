@@ -12,12 +12,14 @@ public class ClientHandler implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
     private boolean connected;
+    private int gameId;
 
-    public ClientHandler(Socket socket, Game game, char playerSymbol) {
+    public ClientHandler(Socket socket, Game game, char playerSymbol, int gameId) {
         this.socket = socket;
         this.game = game;
         this.playerSymbol = playerSymbol;
         this.connected = true;
+        this.gameId = gameId;
 
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -40,9 +42,8 @@ public class ClientHandler implements Runnable {
     public void sendBoard() {
         if (connected && out != null) {
             String board = game.getBoardAsString();
-            // Invia il tabellone come UN UNICO messaggio con un marker
             out.println("BOARD_START");
-            out.print(board);  // NON println - il board ha già i \n
+            out.print(board);
             out.println("BOARD_END");
             out.flush();
         }
@@ -51,11 +52,11 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // Invia al client il suo simbolo
-            sendMessage("PLAYER_ID:" + playerSymbol);
-            sendMessage("Sei il giocatore " + playerSymbol);
+            System.out.println("  [Partita #" + gameId + "] Giocatore " + playerSymbol + " pronto");
 
-            // Invia il tabellone iniziale
+            sendMessage("PLAYER_ID:" + playerSymbol);
+            sendMessage("Sei il giocatore " + playerSymbol + " - Partita #" + gameId);
+
             sendBoard();
 
             String input;
@@ -74,7 +75,6 @@ public class ClientHandler implements Runnable {
                     int col = Integer.parseInt(input.trim());
 
                     if (game.makeMove(col, playerSymbol)) {
-                        // Mossa valida
                         sendMessage("VALID_MOVE");
                         sendBoard();
 
@@ -83,7 +83,6 @@ public class ClientHandler implements Runnable {
                             opponent.sendBoard();
                         }
 
-                        // Controlla fine gioco
                         if (game.isGameOver()) {
                             char winner = game.getWinner();
 
@@ -103,6 +102,8 @@ public class ClientHandler implements Runnable {
                                     opponent.sendMessage("WIN");
                                 }
                             }
+
+                            System.out.println("  [Partita #" + gameId + "] Vincitore: " + winner);
                             break;
                         } else {
                             if (opponent != null) {
@@ -120,7 +121,7 @@ public class ClientHandler implements Runnable {
             }
 
         } catch (IOException e) {
-            System.out.println("Giocatore " + playerSymbol + " disconnesso");
+            System.out.println("  [Partita #" + gameId + "] Giocatore " + playerSymbol + " disconnesso");
         } finally {
             if (opponent != null && !game.isGameOver()) {
                 opponent.sendMessage("OPPONENT_DISCONNECTED");
